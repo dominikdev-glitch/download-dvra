@@ -315,6 +315,42 @@ export default function App() {
                 </div>
               </div>
             </div>
+
+            {/* Software Release Direct Link Setting */}
+            <div className="max-w-3xl mx-auto bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2 text-slate-900 font-bold text-sm">
+                  <Download className="w-4 h-4 text-blue-600" />
+                  <span>Software Direct Download Link (GitHub / Cloud / CDN)</span>
+                </div>
+                <span className="text-[11px] text-slate-500 font-medium">105 MB Windows Build</span>
+              </div>
+              <p className="text-xs text-slate-600">
+                Because 105MB exceeds the 25MB chat upload limit, paste your direct hosted download URL below (e.g. from GitHub Releases, Google Drive direct link, Mega, or Dropbox):
+              </p>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <input
+                  type="url"
+                  id="input-custom-download-url"
+                  placeholder="https://github.com/.../releases/download/v1.0.2/DVRA-Setup.exe"
+                  defaultValue={localStorage.getItem('dvra_custom_download_url') || ''}
+                  className="flex-1 px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-blue-500"
+                  onChange={(e) => {
+                    localStorage.setItem('dvra_custom_download_url', e.target.value.trim());
+                  }}
+                />
+                <button
+                  onClick={() => {
+                    const val = (document.getElementById('input-custom-download-url') as HTMLInputElement)?.value.trim();
+                    localStorage.setItem('dvra_custom_download_url', val || '');
+                    alert('Download URL updated successfully!');
+                  }}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl shadow-xs transition-colors shrink-0 cursor-pointer"
+                >
+                  Save Link
+                </button>
+              </div>
+            </div>
           </div>
         )}
 

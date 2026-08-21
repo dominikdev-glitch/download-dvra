@@ -14,45 +14,85 @@ let activeProjectInfo: {
   connectedAt?: string;
 } | null = null;
 
-// Provided Firebase Admin Service Account
-const DEFAULT_SERVICE_ACCOUNT = {
-  type: "service_account",
-  project_id: "radio-app-2af91",
-  private_key_id: "5aa07d9f42527ea97da2c77e35947db8ebf7bd4c",
-  private_key: "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCnu0gNOJvAUaIH\nMdeGB5uSc6Yz/wPlSiUwqec+62VOI6PlTZi7xS2ECeEUoWfy5VkaJAlXWnkT5F5b\nUN8MvtKzd/40xYOy0Uykb3wLgYcGoIKvk0aXkQlxmGAHyr1khnx5nmbTHGPGLnJo\nZUeXohVSCQturSNejDyBTPCpsJVgj2UVD1yFmUXw9SPekUFwAUWoWwg3UoQ1R8jV\n1LlqiKY6/rjaAvAiAgNnTX0tews3C496FAaTr5FERh75B2v81YhclQeYcwsYyIta\nahhKiDveSYuMs6drObMVxxcovYRjnytJ7eIkbQku3kV+9/yxjJHbA087whrGCUrP\nhkt7Ts1hAgMBAAECggEAEDupMX5ftIaHWTg9qj8Pk2ZAmO+pVNuO1d2GVSnlrWD4\nT7eUJzgMu6apHfIGZBTw6/1o2gdriGf6/yNzMtc/qmwxMgebmLF2QBkktt2w+mHh\nGVT2PrJOvlZc6jl43Zhrxj7KUiGBQSuQRFeTojKRlartFv0IBfJ/OJRVsQE3Xmza\nN1dAp+nWPpQFse4MpVc+/8BLzZJ3hM1xvgtFIuCLcjOBDQwgQW4ti52MXyMEjVZ6\nrInJQTPlreT2eFCU40Y71cdzBwJ3ZERZE+oJmwBQ1/fndTq1qJh9s3qGySr2ftmW\nVEVSYDS0hhd62CTa4NzL6RSW+3+ciC2qKEEomfzlcQKBgQDSwz8iE+hXOQ+FWkFY\n1/jCtfYnnDPMB8mm4s28g069gTWk+EKbTyJMgaSDi25SeZjt6zTlrdeAUJ0VewWF\nzAasqg5ijE02Iakj81QC9RBczrKs8WuiC7CmC56DH/DC3e9gQdY2Hwn90xUlbzzr\nlXi6f3umeAPJUmaUr7pOdvj5fwKBgQDLu5vregogDOM9hDb+5eiV0p4Z5dTywiVX\nkfUL8E6Wi96UiEM2MZk0KS5iVIa72NM6s+DHOnL9/YJvzC+KOdSnAvSA1oqIAa5W\nVSXKOCs+kmJsM/nReCZeTV1jLqtL3MG4SFy3zHy9GwuoOsuS5aEhHdZVuU5hf0dY\nn4dJCezpHwKBgEEodYsuhmT40hCTD6LM2i4wHRKv2t+YBMKgWaSPH7e8i34d9lGX\njG4Eony8jXXX++yKC8d6ECauRXIPn2x24BVfWaUj5Pb4PxdLMczcQJvAl0KaPIFT\nheA/tViqdj94Z3nlwLjorakYKfBxzG60vidCJFMZxWnnHKmZDksVwvE3AoGAAc/2\ncB7SzjwvHVH6x0O2UPbhrytLPKmbeW7z9ho6KL6vyTR5HJdOXJdtMTS9ShiAsIn/\nGuabNUU3DtWLKrie+qldEXRXISSar2vsfSMIx3K362x+8W0XMkmP5hz5KyCYnJIQ\nORZZmbkO3n0/aFwgldHVIUgXuWhPcytgIbcz41MCgYAvvRQnCb4vMz7opwFaZ+3r\nDdsSb6BrlOm9GtDaOHva+xGSGSdbL3nmnwfpqGigU9XMjYRaUjXa6n6vsf2/zZgi\n6FHRYLSFF2bWK8jtOz1zJJSmIcJNFWTdBxPbE1rGqYIPXBFiVpjrwWqe3pzqADnJ\nphN36fNGq8yCw+OqI9txQw==\n-----END PRIVATE KEY-----\n",
-  client_email: "firebase-adminsdk-fbsvc@radio-app-2af91.iam.gserviceaccount.com",
-  client_id: "115341548424717957993",
-  auth_uri: "https://accounts.google.com/o/oauth2/auth",
-  token_uri: "https://oauth2.googleapis.com/token",
-  auth_provider_x509_cert_url: "https://www.googleapis.com/oauth2/v1/certs",
-  client_x509_cert_url: "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-fbsvc%40radio-app-2af91.iam.gserviceaccount.com",
-  universe_domain: "googleapis.com"
-};
+// Resolve Firebase Admin Service Account safely from Environment Variables
+function getEnvironmentServiceAccount(): {
+  projectId: string;
+  clientEmail: string;
+  privateKey: string;
+} | null {
+  // 1. Check full JSON string in FIREBASE_SERVICE_ACCOUNT
+  const rawJson = process.env.FIREBASE_SERVICE_ACCOUNT;
+  if (rawJson) {
+    try {
+      const parsed = JSON.parse(rawJson);
+      if (parsed.project_id && parsed.private_key && parsed.client_email) {
+        return {
+          projectId: parsed.project_id,
+          clientEmail: parsed.client_email,
+          privateKey: parsed.private_key.replace(/\\n/g, '\n'),
+        };
+      }
+    } catch (e: any) {
+      console.warn('[Firebase Admin] Could not parse FIREBASE_SERVICE_ACCOUNT JSON:', e.message);
+    }
+  }
+
+  // 2. Check individual environment variables
+  if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_PRIVATE_KEY && process.env.FIREBASE_CLIENT_EMAIL) {
+    return {
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+    };
+  }
+
+  // 3. Check for local serviceAccountKey.json if present
+  try {
+    const localKeyPath = path.join(process.cwd(), 'serviceAccountKey.json');
+    if (fs.existsSync(localKeyPath)) {
+      const fileData = JSON.parse(fs.readFileSync(localKeyPath, 'utf8'));
+      if (fileData.project_id && fileData.private_key && fileData.client_email) {
+        return {
+          projectId: fileData.project_id,
+          clientEmail: fileData.client_email,
+          privateKey: fileData.private_key.replace(/\\n/g, '\n'),
+        };
+      }
+    }
+  } catch {
+    // Ignore if file doesn't exist
+  }
+
+  return null;
+}
 
 function initDefaultFirebase() {
   try {
-    if (!activeApp && DEFAULT_SERVICE_ACCOUNT.private_key) {
+    const svc = getEnvironmentServiceAccount();
+    if (!activeApp && svc) {
       activeApp = initializeApp({
         credential: cert({
-          projectId: DEFAULT_SERVICE_ACCOUNT.project_id,
-          privateKey: DEFAULT_SERVICE_ACCOUNT.private_key.replace(/\\n/g, '\n'),
-          clientEmail: DEFAULT_SERVICE_ACCOUNT.client_email,
+          projectId: svc.projectId,
+          privateKey: svc.privateKey,
+          clientEmail: svc.clientEmail,
         }),
       }, 'default-firebase-app');
       activeFirestore = getFirestore(activeApp);
       activeProjectInfo = {
-        projectId: DEFAULT_SERVICE_ACCOUNT.project_id,
-        clientEmail: DEFAULT_SERVICE_ACCOUNT.client_email,
+        projectId: svc.projectId,
+        clientEmail: svc.clientEmail,
         connectedAt: new Date().toISOString(),
       };
-      console.log(`[Firebase Admin] Successfully initialized Firestore connection for project: ${DEFAULT_SERVICE_ACCOUNT.project_id}`);
+      console.log(`[Firebase Admin] Successfully initialized Firestore connection for project: ${svc.projectId}`);
+    } else {
+      console.log('[Firebase Admin] No environment service account configured. Ready for connect via Admin UI or ENV.');
     }
   } catch (err: any) {
-    console.error('[Firebase Admin] Startup initialization error:', err.message);
+    console.error('[Firebase Admin] Startup initialization notice:', err.message);
   }
 }
 
-// Auto-initialize on server load
+// Auto-initialize from environment if provided
 initDefaultFirebase();
 
 // Admin Authentication & Rate Limiting (5 failed attempts maximum)
@@ -119,6 +159,10 @@ async function startServer() {
   app.use('/downloads', express.static(downloadsDir));
   app.use('/downloads', express.static(publicDownloadsDir));
 
+  let customDownloadUrlOverride: string =
+    process.env.CUSTOM_DOWNLOAD_URL ||
+    'https://github.com/dominikdev-glitch/download-dvra/releases/download/dvra/DVRA.Setup.1.0.2.exe';
+
   // Check which installers exist on disk
   app.get('/api/downloads/status', (req, res) => {
     try {
@@ -131,14 +175,19 @@ async function startServer() {
       }
       res.json({
         availableFiles: Array.from(new Set(files)),
+        customDownloadUrl: customDownloadUrlOverride || null,
       });
     } catch {
-      res.json({ availableFiles: [] });
+      res.json({ availableFiles: [], customDownloadUrl: customDownloadUrlOverride || null });
     }
   });
 
   // Direct download endpoint
   app.get('/api/download/:filename', (req, res) => {
+    if (customDownloadUrlOverride && customDownloadUrlOverride.startsWith('http')) {
+      return res.redirect(302, customDownloadUrlOverride);
+    }
+
     const filename = decodeURIComponent(req.params.filename);
     const safeName = path.basename(filename);
     const primaryPath = path.join(downloadsDir, safeName);

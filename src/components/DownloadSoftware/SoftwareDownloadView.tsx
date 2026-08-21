@@ -129,10 +129,14 @@ export function SoftwareDownloadView({ onAdminUnlockRequest, isAdminUnlocked }: 
   const [availableFiles, setAvailableFiles] = useState<string[]>([]);
   const [selectedChain, setSelectedChain] = useState<string>('all');
 
+  const [downloadUrlConfig, setDownloadUrlConfig] = useState<string>(() => {
+    return localStorage.getItem('dvra_custom_download_url') || '';
+  });
+
   const windowsRelease = {
     fileName: 'DVRA Setup 1.0.2.exe',
     version: 'v1.0.2 (Production Stable)',
-    size: '64.8 MB',
+    size: '105 MB',
     arch: '64-bit (x64 / ARM64 Windows)',
     sha256: '9b84ac42e01df1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
     minReq: 'Windows 10 / 11 (64-bit)',
@@ -145,19 +149,27 @@ export function SoftwareDownloadView({ onAdminUnlockRequest, isAdminUnlocked }: 
         if (data.availableFiles) {
           setAvailableFiles(data.availableFiles);
         }
+        if (data.customDownloadUrl) {
+          setDownloadUrlConfig(data.customDownloadUrl);
+        }
       })
       .catch(() => {});
   }, []);
 
   const handleDownload = () => {
     setDownloadStarted(true);
-    const downloadUrl = `/api/download/${encodeURIComponent(windowsRelease.fileName)}`;
-    const a = document.createElement('a');
-    a.href = downloadUrl;
-    a.download = windowsRelease.fileName;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    const targetUrl = downloadUrlConfig.trim() || `/api/download/${encodeURIComponent(windowsRelease.fileName)}`;
+    
+    if (targetUrl.startsWith('http')) {
+      window.location.href = targetUrl;
+    } else {
+      const a = document.createElement('a');
+      a.href = targetUrl;
+      a.download = windowsRelease.fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
   };
 
   const chainData = [
