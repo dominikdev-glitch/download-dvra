@@ -1,0 +1,6 @@
+{
+  "name": "Database Explorer & AES-256 Crypto Studio",
+  "description": "Multi-Chain Token Creation & Liquidity Management Suite, Database Explorer, and AES-256 Crypto Studio with mobile PWA and touch-optimized responsive interface.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

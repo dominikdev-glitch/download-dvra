@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#020617" />
+    </linearGradient>
+    <linearGradient id="primaryGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3b82f6" />
+      <stop offset="50%" stop-color="#6366f1" />
+      <stop offset="100%" stop-color="#a855f7" />
+    </linearGradient>
+    <linearGradient id="glowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#818cf8" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background Rounded Canvas -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)" />
+  <rect width="504" height="504" x="4" y="4" rx="108" fill="none" stroke="url(#primaryGrad)" stroke-width="4" opacity="0.4" />
+
+  <!-- Outer Orbit Rings -->
+  <circle cx="256" cy="256" r="180" fill="none" stroke="url(#primaryGrad)" stroke-width="6" stroke-dasharray="16 12" opacity="0.6" />
+  <circle cx="256" cy="256" r="140" fill="none" stroke="#38bdf8" stroke-width="3" opacity="0.4" />
+
+  <!-- 4 Chain Orbit Nodes -->
+  <!-- TRON (Top) -->
+  <circle cx="256" cy="76" r="22" fill="#ef4444" />
+  <text x="256" y="82" font-family="system-ui, sans-serif" font-size="14" font-weight="900" fill="#ffffff" text-anchor="middle">TRX</text>
+
+  <!-- SOL (Right) -->
+  <circle cx="436" cy="256" r="22" fill="#10b981" />
+  <text x="436" y="262" font-family="system-ui, sans-serif" font-size="14" font-weight="900" fill="#ffffff" text-anchor="middle">SOL</text>
+
+  <!-- BNB (Bottom) -->
+  <circle cx="256" cy="436" r="22" fill="#f59e0b" />
+  <text x="256" y="442" font-family="system-ui, sans-serif" font-size="14" font-weight="900" fill="#1e2026" text-anchor="middle">BNB</text>
+
+  <!-- ETH (Left) -->
+  <circle cx="76" cy="256" r="22" fill="#6366f1" />
+  <text x="76" y="262" font-family="system-ui, sans-serif" font-size="14" font-weight="900" fill="#ffffff" text-anchor="middle">ETH</text>
+
+  <!-- Central Emblem Shield & Logo -->
+  <circle cx="256" cy="256" r="88" fill="url(#primaryGrad)" />
+  <circle cx="256" cy="256" r="80" fill="#0f172a" />
+
+  <!-- DVRA Monogram / Shield -->
+  <path d="M220 180h48c35 0 56 18 56 46 0 20-11 34-29 41l35 65h-32l-30-58h-20v58h-28V180zm28 24v44h18c18 0 28-8 28-22s-10-22-28-22h-18z" fill="url(#glowGrad)" />
+</svg>
