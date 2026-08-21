@@ -16,7 +16,6 @@ import { AesCryptoView } from './components/AesStudio/AesCryptoView';
 import { SoftwareDownloadView } from './components/DownloadSoftware/SoftwareDownloadView';
 import { AdminPasswordModal } from './components/AdminPasswordModal';
 import { ServiceAccountModal } from './components/ServiceAccountModal';
-import { PwaInstallPrompt } from './components/PwaInstallPrompt';
 import { ConnectionStatus } from './types';
 import { authFetch } from './lib/api';
 
@@ -371,9 +370,6 @@ export default function App() {
           </div>
         )}
       </main>
-
-      {/* PWA "Add to Home Screen" Banner / Modal */}
-      <PwaInstallPrompt />
 
       {/* Admin Password Authentication Modal */}
       <AdminPasswordModal
