@@ -14,6 +14,29 @@ let activeProjectInfo: {
   connectedAt?: string;
 } | null = null;
 
+// Helper to sanitize and normalize RSA Private Key strings from various ENV formats
+function cleanPrivateKey(key: string): string {
+  if (!key) return '';
+  let cleaned = key.trim();
+  
+  // Remove wrapping quotes if present (e.g. '"-----BEGIN ..."' or "'-----BEGIN ...'")
+  if ((cleaned.startsWith('"') && cleaned.endsWith('"')) || (cleaned.startsWith("'") && cleaned.endsWith("'"))) {
+    cleaned = cleaned.slice(1, -1);
+  }
+
+  // Replace literal escaped \n with real newlines
+  cleaned = cleaned.replace(/\\n/g, '\n');
+
+  // If newlines were lost into single-line format
+  if (!cleaned.includes('\n') && cleaned.includes('-----BEGIN PRIVATE KEY-----')) {
+    cleaned = cleaned
+      .replace('-----BEGIN PRIVATE KEY-----', '-----BEGIN PRIVATE KEY-----\n')
+      .replace('-----END PRIVATE KEY-----', '\n-----END PRIVATE KEY-----');
+  }
+
+  return cleaned;
+}
+
 // Resolve Firebase Admin Service Account safely from Environment Variables
 function getEnvironmentServiceAccount(): {
   projectId: string;
@@ -36,9 +59,9 @@ function getEnvironmentServiceAccount(): {
 
       if (projId && privKey && cEmail) {
         return {
-          projectId: projId,
-          clientEmail: cEmail,
-          privateKey: privKey.replace(/\\n/g, '\n'),
+          projectId: projId.trim(),
+          clientEmail: cEmail.trim(),
+          privateKey: cleanPrivateKey(privKey),
         };
       }
     } catch (e: any) {
@@ -69,7 +92,7 @@ function getEnvironmentServiceAccount(): {
     return {
       projectId: envProjectId.trim(),
       clientEmail: envClientEmail.trim(),
-      privateKey: envPrivateKey.trim().replace(/\\n/g, '\n'),
+      privateKey: cleanPrivateKey(envPrivateKey),
     };
   }
 
@@ -83,9 +106,9 @@ function getEnvironmentServiceAccount(): {
       const cEmail = fileData.client_email || fileData.clientEmail;
       if (projId && privKey && cEmail) {
         return {
-          projectId: projId,
-          clientEmail: cEmail,
-          privateKey: privKey.replace(/\\n/g, '\n'),
+          projectId: projId.trim(),
+          clientEmail: cEmail.trim(),
+          privateKey: cleanPrivateKey(privKey),
         };
       }
     }
