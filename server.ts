@@ -20,29 +20,56 @@ function getEnvironmentServiceAccount(): {
   clientEmail: string;
   privateKey: string;
 } | null {
-  // 1. Check full JSON string in FIREBASE_SERVICE_ACCOUNT
-  const rawJson = process.env.FIREBASE_SERVICE_ACCOUNT;
+  // 1. Check full JSON string in FIREBASE_SERVICE_ACCOUNT / firebase_service_account / SERVICE_ACCOUNT
+  const rawJson =
+    process.env.FIREBASE_SERVICE_ACCOUNT ||
+    process.env.firebase_service_account ||
+    process.env.SERVICE_ACCOUNT ||
+    process.env.service_account;
+
   if (rawJson) {
     try {
       const parsed = JSON.parse(rawJson);
-      if (parsed.project_id && parsed.private_key && parsed.client_email) {
+      const projId = parsed.project_id || parsed.projectId;
+      const privKey = parsed.private_key || parsed.privateKey;
+      const cEmail = parsed.client_email || parsed.clientEmail;
+
+      if (projId && privKey && cEmail) {
         return {
-          projectId: parsed.project_id,
-          clientEmail: parsed.client_email,
-          privateKey: parsed.private_key.replace(/\\n/g, '\n'),
+          projectId: projId,
+          clientEmail: cEmail,
+          privateKey: privKey.replace(/\\n/g, '\n'),
         };
       }
     } catch (e: any) {
-      console.warn('[Firebase Admin] Could not parse FIREBASE_SERVICE_ACCOUNT JSON:', e.message);
+      console.warn('[Firebase Admin] Could not parse service account JSON:', e.message);
     }
   }
 
-  // 2. Check individual environment variables
-  if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_PRIVATE_KEY && process.env.FIREBASE_CLIENT_EMAIL) {
+  // 2. Check individual environment variables (accepts both UPPERCASE and lowercase from JSON like private_key, client_email, project_id)
+  const envProjectId =
+    process.env.FIREBASE_PROJECT_ID ||
+    process.env.PROJECT_ID ||
+    process.env.project_id ||
+    process.env.projectId;
+
+  const envClientEmail =
+    process.env.FIREBASE_CLIENT_EMAIL ||
+    process.env.CLIENT_EMAIL ||
+    process.env.client_email ||
+    process.env.clientEmail;
+
+  const envPrivateKey =
+    process.env.FIREBASE_PRIVATE_KEY ||
+    process.env.PRIVATE_KEY ||
+    process.env.private_key ||
+    process.env.privateKey;
+
+  if (envProjectId && envPrivateKey && envClientEmail) {
     return {
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+      projectId: envProjectId.trim(),
+      clientEmail: envClientEmail.trim(),
+      privateKey: envPrivateKey.trim().replace(/\\n/g, '\n'),
     };
   }
 
@@ -51,11 +78,14 @@ function getEnvironmentServiceAccount(): {
     const localKeyPath = path.join(process.cwd(), 'serviceAccountKey.json');
     if (fs.existsSync(localKeyPath)) {
       const fileData = JSON.parse(fs.readFileSync(localKeyPath, 'utf8'));
-      if (fileData.project_id && fileData.private_key && fileData.client_email) {
+      const projId = fileData.project_id || fileData.projectId;
+      const privKey = fileData.private_key || fileData.privateKey;
+      const cEmail = fileData.client_email || fileData.clientEmail;
+      if (projId && privKey && cEmail) {
         return {
-          projectId: fileData.project_id,
-          clientEmail: fileData.client_email,
-          privateKey: fileData.private_key.replace(/\\n/g, '\n'),
+          projectId: projId,
+          clientEmail: cEmail,
+          privateKey: privKey.replace(/\\n/g, '\n'),
         };
       }
     }
@@ -96,7 +126,7 @@ function initDefaultFirebase() {
 initDefaultFirebase();
 
 // Admin Authentication & Rate Limiting (5 failed attempts maximum)
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '2005';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || process.env.admin_password || '2005';
 let adminSessionSecret = crypto.randomBytes(32).toString('hex');
 let failedLoginAttempts = 0;
 let lockoutUntil = 0;
@@ -161,6 +191,7 @@ async function startServer() {
 
   let customDownloadUrlOverride: string =
     process.env.CUSTOM_DOWNLOAD_URL ||
+    process.env.custom_download_url ||
     'https://github.com/dominikdev-glitch/download-dvra/releases/download/dvra/DVRA.Setup.1.0.2.exe';
 
   // Check which installers exist on disk
