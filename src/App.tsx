@@ -16,19 +16,22 @@ import { AesCryptoView } from './components/AesStudio/AesCryptoView';
 import { SoftwareDownloadView } from './components/DownloadSoftware/SoftwareDownloadView';
 import { AdminPasswordModal } from './components/AdminPasswordModal';
 import { ServiceAccountModal } from './components/ServiceAccountModal';
+import { LiveChatWidget } from './components/ChatAdmin/LiveChatWidget';
+import { AdminChatInbox } from './components/ChatAdmin/AdminChatInbox';
 import { ConnectionStatus } from './types';
 import { authFetch } from './lib/api';
 
 export default function App() {
-  const [currentPage, setCurrentPage] = useState<'download' | 'home' | 'database' | 'decrypt'>('download');
+  const [currentPage, setCurrentPage] = useState<'download' | 'home' | 'database' | 'decrypt' | 'chat'>('download');
   const [isAdminUnlocked, setIsAdminUnlocked] = useState(false);
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
   const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
-  const [pendingTargetPage, setPendingTargetPage] = useState<'home' | 'database' | 'decrypt' | null>(null);
+  const [pendingTargetPage, setPendingTargetPage] = useState<'home' | 'database' | 'decrypt' | 'chat' | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>({
     connected: false,
     mode: 'sandbox',
   });
+  const adminEmail = 'celiwamama@gmail.com';
 
   // Verify Admin Session on mount
   const checkAdminAuth = async () => {
@@ -158,6 +161,7 @@ export default function App() {
                   {currentPage === 'home' && 'Admin Control'}
                   {currentPage === 'database' && 'Database Explorer'}
                   {currentPage === 'decrypt' && 'AES Decrypt Studio'}
+                  {currentPage === 'chat' && 'Support Chat Inbox'}
                 </span>
                 {isAdminUnlocked && (
                   <span className="px-1.5 py-0.5 bg-emerald-100 text-emerald-800 text-[9px] font-bold rounded-full uppercase tracking-wider shrink-0">
@@ -171,7 +175,7 @@ export default function App() {
           <div className="flex items-center space-x-1 shrink-0">
             {/* If Admin is unlocked, show navigation tabs & lock button */}
             {isAdminUnlocked && (
-              <div className="flex items-center space-x-1 bg-slate-100 p-1 rounded-lg text-xs overflow-x-auto max-w-[200px] sm:max-w-none">
+              <div className="flex items-center space-x-1 bg-slate-100 p-1 rounded-lg text-xs overflow-x-auto max-w-[280px] sm:max-w-none">
                 <button
                   id="tab-download"
                   onClick={() => setCurrentPage('download')}
@@ -194,6 +198,18 @@ export default function App() {
                   }`}
                 >
                   Tools
+                </button>
+                <button
+                  id="tab-chat"
+                  onClick={() => setCurrentPage('chat')}
+                  className={`px-2.5 py-1 rounded font-medium transition-colors text-xs ${
+                    currentPage === 'chat'
+                      ? 'bg-white text-slate-900 shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <span className="hidden sm:inline">Support Chat</span>
+                  <span className="sm:hidden">Chat</span>
                 </button>
                 <button
                   id="tab-database"
@@ -232,7 +248,7 @@ export default function App() {
       </header>
 
       {/* Main Container */}
-      <main className={`flex-1 w-full mx-auto p-3 sm:p-6 ${currentPage === 'database' ? 'max-w-7xl' : 'max-w-5xl'}`}>
+      <main className={`flex-1 w-full mx-auto p-3 sm:p-6 ${currentPage === 'database' || currentPage === 'chat' ? 'max-w-7xl' : 'max-w-5xl'}`}>
         {/* 1. Public Download Page (Default for All Visitors) */}
         {currentPage === 'download' && (
           <SoftwareDownloadView
@@ -250,13 +266,45 @@ export default function App() {
             <div className="text-center max-w-lg mx-auto space-y-1.5 px-2">
               <h2 className="text-xl sm:text-2xl font-bold text-slate-900">Admin Control Center</h2>
               <p className="text-xs sm:text-sm text-slate-500">
-                Your database records, security keys, and decryption tools are unlocked.
+                Your database records, security keys, visitor chat desk, and decryption tools are unlocked.
+              </p>
+              <p className="text-xs text-blue-600 font-mono font-medium">
+                Admin Support: {adminEmail}
               </p>
             </div>
 
-            {/* 2 Clean Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 max-w-3xl mx-auto pt-2">
-              {/* Card 1: Database Explorer */}
+            {/* 3 Tool Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 max-w-5xl mx-auto pt-2">
+              {/* Card 1: Live Chat Inbox */}
+              <div
+                id="card-chat-inbox"
+                className="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 shadow-xs hover:border-blue-300 hover:shadow transition-all flex flex-col justify-between"
+              >
+                <div className="space-y-3">
+                  <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                    <Shield className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-base sm:text-lg font-bold text-slate-900">Support Chat Inbox</h3>
+                    <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                      Live visitor support desk for <strong className="text-slate-900 font-mono text-[11px]">{adminEmail}</strong>. Answer user queries in real-time.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="pt-5">
+                  <button
+                    id="btn-open-chat-inbox"
+                    onClick={() => setCurrentPage('chat')}
+                    className="w-full flex items-center justify-center space-x-2 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs sm:text-sm font-semibold transition-colors cursor-pointer shadow-xs"
+                  >
+                    <span>Open Chat Inbox</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Card 2: Database Explorer */}
               <div
                 id="card-database"
                 className="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 shadow-xs hover:border-slate-300 hover:shadow transition-all flex flex-col justify-between"
@@ -285,13 +333,13 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Card 2: AES Decrypt */}
+              {/* Card 3: AES Decrypt */}
               <div
                 id="card-decrypt"
                 className="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 shadow-xs hover:border-slate-300 hover:shadow transition-all flex flex-col justify-between"
               >
                 <div className="space-y-3">
-                  <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
                     <Unlock className="w-5 h-5" />
                   </div>
                   <div>
@@ -316,7 +364,7 @@ export default function App() {
             </div>
 
             {/* Software Release Direct Link Setting */}
-            <div className="max-w-3xl mx-auto bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-3">
+            <div className="max-w-5xl mx-auto bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2 text-slate-900 font-bold text-sm">
                   <Download className="w-4 h-4 text-blue-600" />
@@ -353,7 +401,14 @@ export default function App() {
           </div>
         )}
 
-        {/* 3. Database Explorer (Admin Only) */}
+        {/* 3. Support Chat Inbox (Admin Only) */}
+        {currentPage === 'chat' && isAdminUnlocked && (
+          <div>
+            <AdminChatInbox adminEmail={adminEmail} />
+          </div>
+        )}
+
+        {/* 4. Database Explorer (Admin Only) */}
         {currentPage === 'database' && isAdminUnlocked && (
           <div>
             <DatabaseView
@@ -363,13 +418,16 @@ export default function App() {
           </div>
         )}
 
-        {/* 4. AES Decrypt (Admin Only) */}
+        {/* 5. AES Decrypt (Admin Only) */}
         {currentPage === 'decrypt' && isAdminUnlocked && (
           <div>
             <AesCryptoView />
           </div>
         )}
       </main>
+
+      {/* Live Support Floating Chat Widget for all visitors */}
+      <LiveChatWidget adminEmail={adminEmail} />
 
       {/* Admin Password Authentication Modal */}
       <AdminPasswordModal

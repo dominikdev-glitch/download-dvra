@@ -693,6 +693,194 @@ async function startServer() {
     }
   });
 
+  // ==========================================
+  // LIVE ADMIN CHAT & SUPPORT ENDPOINTS
+  // Admin: celiwamama@gmail.com
+  // ==========================================
+  const ADMIN_CHAT_EMAIL =
+    process.env.ADMIN_CHAT_EMAIL ||
+    process.env.admin_chat_email ||
+    'celiwamama@gmail.com';
+
+  interface ChatMessageItem {
+    id: string;
+    sessionId: string;
+    sender: 'visitor' | 'admin';
+    senderName: string;
+    senderEmail?: string;
+    content: string;
+    timestamp: string;
+    read: boolean;
+  }
+
+  const chatStore: ChatMessageItem[] = [
+    {
+      id: 'welcome-seed',
+      sessionId: 'general',
+      sender: 'admin',
+      senderName: 'Admin Support',
+      senderEmail: ADMIN_CHAT_EMAIL,
+      content: `Hello! 👋 Welcome to DVRA Suite support. You can chat live with Admin here or email directly at ${ADMIN_CHAT_EMAIL}. How can we help you?`,
+      timestamp: new Date().toISOString(),
+      read: true,
+    },
+  ];
+
+  // Public: Get Admin Chat info
+  app.get('/api/chat/config', (req, res) => {
+    res.json({
+      adminEmail: ADMIN_CHAT_EMAIL,
+      adminName: 'Admin Support',
+      status: 'online',
+    });
+  });
+
+  // Public: Get messages for current visitor session
+  app.get('/api/chat/messages', (req, res) => {
+    const sessionId = (req.query.sessionId as string) || 'general';
+    const sessionMessages = chatStore.filter(
+      (m) => m.sessionId === sessionId || m.id === 'welcome-seed'
+    );
+    res.json({
+      messages: sessionMessages,
+      adminEmail: ADMIN_CHAT_EMAIL,
+    });
+  });
+
+  // Public: Visitor sends a message
+  app.post('/api/chat/send', (req, res) => {
+    const { sessionId = 'general', visitorName = 'Visitor', visitorEmail = '', content } = req.body;
+    if (!content || typeof content !== 'string' || !content.trim()) {
+      return res.status(400).json({ error: 'Message content is required.' });
+    }
+
+    const newMsg: ChatMessageItem = {
+      id: `msg-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      sessionId: sessionId.trim(),
+      sender: 'visitor',
+      senderName: visitorName.trim() || 'Visitor',
+      senderEmail: visitorEmail.trim(),
+      content: content.trim(),
+      timestamp: new Date().toISOString(),
+      read: false,
+    };
+
+    chatStore.push(newMsg);
+
+    if (activeFirestore) {
+      activeFirestore.collection('_admin_chats').add(newMsg).catch(() => {});
+    }
+
+    const sessionMessages = chatStore.filter(
+      (m) => m.sessionId === sessionId || m.id === 'welcome-seed'
+    );
+
+    res.json({ success: true, message: newMsg, messages: sessionMessages });
+  });
+
+  // Protected: Admin retrieves all conversations
+  app.get('/api/chat/admin/conversations', adminAuthMiddleware, (req, res) => {
+    const conversationsMap = new Map<string, any>();
+
+    for (const msg of chatStore) {
+      if (msg.id === 'welcome-seed') continue;
+      const sId = msg.sessionId;
+      if (!conversationsMap.has(sId)) {
+        conversationsMap.set(sId, {
+          sessionId: sId,
+          visitorName: msg.sender === 'visitor' ? msg.senderName : 'Visitor',
+          visitorEmail: msg.sender === 'visitor' && msg.senderEmail ? msg.senderEmail : '',
+          lastMessage: msg.content,
+          lastMessageTime: msg.timestamp,
+          unreadCount: msg.sender === 'visitor' && !msg.read ? 1 : 0,
+          messageCount: 1,
+        });
+      } else {
+        const conv = conversationsMap.get(sId)!;
+        if (msg.sender === 'visitor') {
+          if (msg.senderName) conv.visitorName = msg.senderName;
+          if (msg.senderEmail) conv.visitorEmail = msg.senderEmail;
+          if (!msg.read) conv.unreadCount += 1;
+        }
+        conv.lastMessage = msg.content;
+        conv.lastMessageTime = msg.timestamp;
+        conv.messageCount += 1;
+      }
+    }
+
+    const conversations = Array.from(conversationsMap.values()).sort(
+      (a, b) => new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime()
+    );
+
+    const totalUnread = chatStore.filter((m) => m.sender === 'visitor' && !m.read).length;
+
+    res.json({
+      conversations,
+      adminEmail: ADMIN_CHAT_EMAIL,
+      totalUnread,
+    });
+  });
+
+  // Protected: Admin gets conversation messages and marks as read
+  app.get('/api/chat/admin/messages', adminAuthMiddleware, (req, res) => {
+    const sessionId = req.query.sessionId as string;
+    if (!sessionId) {
+      return res.status(400).json({ error: 'sessionId parameter is required' });
+    }
+
+    chatStore.forEach((m) => {
+      if (m.sessionId === sessionId && m.sender === 'visitor') {
+        m.read = true;
+      }
+    });
+
+    const messages = chatStore.filter(
+      (m) => m.sessionId === sessionId || m.id === 'welcome-seed'
+    );
+
+    res.json({ messages });
+  });
+
+  // Protected: Admin sends reply
+  app.post('/api/chat/admin/reply', adminAuthMiddleware, (req, res) => {
+    const { sessionId, content } = req.body;
+    if (!sessionId || !content || !content.trim()) {
+      return res.status(400).json({ error: 'sessionId and content are required' });
+    }
+
+    const replyMsg: ChatMessageItem = {
+      id: `admin-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      sessionId: sessionId.trim(),
+      sender: 'admin',
+      senderName: `Admin Support (${ADMIN_CHAT_EMAIL})`,
+      senderEmail: ADMIN_CHAT_EMAIL,
+      content: content.trim(),
+      timestamp: new Date().toISOString(),
+      read: true,
+    };
+
+    chatStore.push(replyMsg);
+
+    if (activeFirestore) {
+      activeFirestore.collection('_admin_chats').add(replyMsg).catch(() => {});
+    }
+
+    res.json({ success: true, message: replyMsg });
+  });
+
+  // Protected: Admin clears conversation
+  app.post('/api/chat/admin/clear', adminAuthMiddleware, (req, res) => {
+    const { sessionId } = req.body;
+    if (sessionId) {
+      for (let i = chatStore.length - 1; i >= 0; i--) {
+        if (chatStore[i].sessionId === sessionId && chatStore[i].id !== 'welcome-seed') {
+          chatStore.splice(i, 1);
+        }
+      }
+    }
+    res.json({ success: true });
+  });
+
   // Vite integration
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({

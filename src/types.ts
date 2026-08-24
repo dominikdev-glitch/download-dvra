@@ -120,3 +120,25 @@ export interface DecryptionResult {
   authVerified: boolean;
   error?: string;
 }
+
+// Chat Admin Types
+export interface ChatMessage {
+  id: string;
+  sessionId: string;
+  sender: 'visitor' | 'admin';
+  senderName: string;
+  senderEmail?: string;
+  content: string;
+  timestamp: string;
+  read?: boolean;
+}
+
+export interface ChatConversation {
+  sessionId: string;
+  visitorName: string;
+  visitorEmail: string;
+  lastMessage: string;
+  lastMessageTime: string;
+  unreadCount: number;
+  messageCount: number;
+}

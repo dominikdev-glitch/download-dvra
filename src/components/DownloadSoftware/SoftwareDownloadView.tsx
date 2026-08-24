@@ -24,7 +24,9 @@ import {
   TrendingUp,
   RefreshCw,
   Clock,
-  Laptop
+  Laptop,
+  Mail,
+  MessageCircle,
 } from 'lucide-react';
 
 // Authentic Official Crypto Chain Logos in crisp vector SVG
@@ -435,17 +437,52 @@ export function SoftwareDownloadView({ onAdminUnlockRequest, isAdminUnlocked }: 
         </div>
       </div>
 
-      {/* 5. Footer with Discreet Icon-Only Lock */}
-      <div className="text-center pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
-        <span>© 2026 DVRA Software Suite. All rights reserved.</span>
-        <button
-          id="btn-footer-admin-login"
-          onClick={onAdminUnlockRequest}
-          title={isAdminUnlocked ? 'Admin Mode (Active)' : 'Security Options'}
-          className="p-1.5 rounded-md hover:bg-slate-100 hover:text-slate-700 text-slate-300 transition-colors cursor-pointer"
-        >
-          <Lock className="w-3.5 h-3.5" />
-        </button>
+      {/* 5. Support & Chat Admin Section */}
+      <div className="bg-slate-900 text-white rounded-2xl p-5 sm:p-6 border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-md">
+        <div className="flex items-center space-x-3.5 text-center sm:text-left">
+          <div className="w-11 h-11 rounded-xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center text-blue-400 shrink-0 mx-auto sm:mx-0">
+            <MessageCircle className="w-6 h-6" />
+          </div>
+          <div>
+            <div className="flex items-center justify-center sm:justify-start space-x-2">
+              <h4 className="text-sm sm:text-base font-bold text-white">Need Support or Custom Token Assistance?</h4>
+              <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                Online
+              </span>
+            </div>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Contact our Admin directly at <strong className="text-slate-200 font-mono">celiwamama@gmail.com</strong> or use the floating live chat in the bottom right corner.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center space-x-2 shrink-0">
+          <a
+            href="mailto:celiwamama@gmail.com?subject=DVRA%20Suite%20Inquiry"
+            className="flex items-center space-x-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl shadow-xs transition-colors"
+          >
+            <Mail className="w-4 h-4" />
+            <span>Email Admin</span>
+          </a>
+        </div>
+      </div>
+
+      {/* 6. Footer with Clear, Unobstructed Admin Lock */}
+      <div className="pt-6 pb-20 sm:pb-8 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+        <span>
+          © 2026 DVRA Software Suite. All rights reserved. Support: <strong className="text-slate-700 font-mono">celiwamama@gmail.com</strong>
+        </span>
+        <div className="flex items-center space-x-2">
+          <button
+            id="btn-footer-admin-login"
+            onClick={onAdminUnlockRequest}
+            title={isAdminUnlocked ? 'Admin Mode (Active)' : 'Admin Control Center Login'}
+            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 transition-colors cursor-pointer text-xs font-semibold border border-slate-200"
+          >
+            <Lock className="w-3.5 h-3.5 text-slate-700" />
+            <span>Admin PIN</span>
+          </button>
+        </div>
       </div>
     </div>
   );
