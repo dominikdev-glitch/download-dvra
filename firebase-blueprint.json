@@ -1,0 +1,26 @@
+{
+  "entities": {
+    "ChatMessage": {
+      "title": "ChatMessage",
+      "description": "Live support chat message exchanged between visitor and admin",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "sessionId": { "type": "string" },
+        "sender": { "type": "string", "enum": ["user", "admin"] },
+        "senderName": { "type": "string" },
+        "senderEmail": { "type": "string" },
+        "content": { "type": "string" },
+        "timestamp": { "type": "string" },
+        "read": { "type": "boolean" }
+      },
+      "required": ["id", "sessionId", "sender", "content", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/_admin_chats/{messageId}": {
+      "schema": "ChatMessage",
+      "description": "Collection storing all visitor and admin support messages"
+    }
+  }
+}

@@ -767,18 +767,43 @@ async function startServer() {
     read: boolean;
   }
 
-  const chatStore: ChatMessageItem[] = [
-    {
-      id: 'welcome-seed',
-      sessionId: 'general',
-      sender: 'admin',
-      senderName: 'Admin Support',
-      senderEmail: ADMIN_CHAT_EMAIL,
-      content: `Hello! 👋 Welcome to DVRA Suite support. You can chat live with Admin here or email directly at ${ADMIN_CHAT_EMAIL}. How can we help you?`,
-      timestamp: new Date().toISOString(),
-      read: true,
-    },
-  ];
+  const CHAT_STORE_FILE = path.join(process.cwd(), 'chat_messages_backup.json');
+
+  function loadChatMessages(): ChatMessageItem[] {
+    try {
+      if (fs.existsSync(CHAT_STORE_FILE)) {
+        const raw = fs.readFileSync(CHAT_STORE_FILE, 'utf-8');
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch (e) {
+      console.warn('Could not read chat backup file:', e);
+    }
+    return [
+      {
+        id: 'welcome-seed',
+        sessionId: 'general',
+        sender: 'admin',
+        senderName: 'Admin Support',
+        senderEmail: ADMIN_CHAT_EMAIL,
+        content: `Hello! 👋 Welcome to DVRA Suite support. You can chat live with Admin here or email directly at ${ADMIN_CHAT_EMAIL}. How can we help you?`,
+        timestamp: new Date().toISOString(),
+        read: true,
+      },
+    ];
+  }
+
+  const chatStore: ChatMessageItem[] = loadChatMessages();
+
+  function saveChatMessages() {
+    try {
+      fs.writeFileSync(CHAT_STORE_FILE, JSON.stringify(chatStore, null, 2), 'utf-8');
+    } catch (e) {
+      console.warn('Could not persist chat backup file:', e);
+    }
+  }
 
   // Public: Get Admin Chat info
   app.get('/api/chat/config', (req, res) => {
@@ -820,6 +845,7 @@ async function startServer() {
     };
 
     chatStore.push(newMsg);
+    saveChatMessages();
 
     if (activeFirestore) {
       activeFirestore.collection('_admin_chats').add(newMsg).catch(() => {});
@@ -914,6 +940,7 @@ async function startServer() {
     };
 
     chatStore.push(replyMsg);
+    saveChatMessages();
 
     if (activeFirestore) {
       activeFirestore.collection('_admin_chats').add(replyMsg).catch(() => {});
@@ -931,6 +958,7 @@ async function startServer() {
           chatStore.splice(i, 1);
         }
       }
+      saveChatMessages();
     }
     res.json({ success: true });
   });

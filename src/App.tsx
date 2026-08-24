@@ -4,7 +4,7 @@ import {
   Unlock,
   ArrowLeft,
   ArrowRight,
-  Shield,
+  MessageSquare,
   Layers,
   KeyRound,
   Download,
@@ -158,16 +158,11 @@ export default function App() {
               <h1 className="text-sm sm:text-base font-bold text-slate-900 flex items-center space-x-1.5 truncate">
                 <span className="truncate">
                   {currentPage === 'download' && 'DVRA Suite'}
-                  {currentPage === 'home' && 'Admin Control'}
+                  {currentPage === 'home' && 'Control Center'}
                   {currentPage === 'database' && 'Database Explorer'}
                   {currentPage === 'decrypt' && 'AES Decrypt Studio'}
                   {currentPage === 'chat' && 'Support Chat Inbox'}
                 </span>
-                {isAdminUnlocked && (
-                  <span className="px-1.5 py-0.5 bg-emerald-100 text-emerald-800 text-[9px] font-bold rounded-full uppercase tracking-wider shrink-0">
-                    Admin
-                  </span>
-                )}
               </h1>
             </div>
           </div>
@@ -282,7 +277,7 @@ export default function App() {
               >
                 <div className="space-y-3">
                   <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
-                    <Shield className="w-5 h-5" />
+                    <MessageSquare className="w-5 h-5" />
                   </div>
                   <div>
                     <h3 className="text-base sm:text-lg font-bold text-slate-900">Support Chat Inbox</h3>
@@ -426,8 +421,8 @@ export default function App() {
         )}
       </main>
 
-      {/* Live Support Floating Chat Widget for all visitors */}
-      <LiveChatWidget adminEmail={adminEmail} />
+      {/* Live Support Floating Chat Widget for visitors (hidden when in admin mode) */}
+      {!isAdminUnlocked && <LiveChatWidget adminEmail={adminEmail} />}
 
       {/* Admin Password Authentication Modal */}
       <AdminPasswordModal

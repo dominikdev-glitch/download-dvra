@@ -335,10 +335,10 @@ export function SoftwareDownloadView({ onAdminUnlockRequest, isAdminUnlocked }: 
 
         {/* Windows Checksum Info */}
         <div className="mt-6 pt-5 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between text-[11px] text-slate-400 gap-2">
-          <div className="font-mono truncate max-w-md">
+          <div className="font-mono break-all sm:truncate max-w-full sm:max-w-md text-center sm:text-left">
             SHA-256: <span className="text-slate-300">{windowsRelease.sha256}</span>
           </div>
-          <div className="text-slate-500 flex items-center space-x-2">
+          <div className="text-slate-500 flex items-center space-x-2 shrink-0">
             <span>macOS & Linux:</span>
             <span className="px-2 py-0.5 bg-slate-800 text-slate-400 rounded text-[10px]">
               Private Beta (Windows Exclusive)
@@ -445,7 +445,7 @@ export function SoftwareDownloadView({ onAdminUnlockRequest, isAdminUnlocked }: 
           </div>
           <div>
             <div className="flex items-center justify-center sm:justify-start space-x-2">
-              <h4 className="text-sm sm:text-base font-bold text-white">Need Support or Custom Token Assistance?</h4>
+              <h4 className="text-sm sm:text-base font-bold text-white">Need Support or License Activation Key?</h4>
               <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold px-2 py-0.5 rounded-full">
                 Online
               </span>
@@ -458,8 +458,12 @@ export function SoftwareDownloadView({ onAdminUnlockRequest, isAdminUnlocked }: 
 
         <div className="flex items-center space-x-2 shrink-0">
           <a
-            href="mailto:celiwamama@gmail.com?subject=DVRA%20Suite%20Inquiry"
-            className="flex items-center space-x-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl shadow-xs transition-colors"
+            href={`mailto:celiwamama@gmail.com?subject=${encodeURIComponent(
+              'Request: DVRA Software License Activation'
+            )}&body=${encodeURIComponent(
+              'Hello DVRA Team,\n\nI would like to request an activation license for the DVRA Software Suite:\n\n• Name / Organization: \n• Hardware / Device Identifier: \n• Number of Licenses Needed: \n• Additional Notes: \n\nPlease provide the activation key and instructions to activate the software.\n\nThank you,\n'
+            )}`}
+            className="flex items-center space-x-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl shadow-xs transition-colors cursor-pointer"
           >
             <Mail className="w-4 h-4" />
             <span>Email Admin</span>

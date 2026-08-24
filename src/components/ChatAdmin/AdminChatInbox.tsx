@@ -166,7 +166,7 @@ export const AdminChatInbox: React.FC<AdminChatInboxProps> = ({
           <div>
             <div className="flex items-center space-x-2">
               <h2 className="text-sm font-bold text-white tracking-wide">
-                Live Support & Chat Admin Inbox
+                Live Support Inbox
               </h2>
               {totalUnread > 0 && (
                 <span className="bg-red-500/20 border border-red-500/40 text-red-300 text-[10px] font-bold px-2 py-0.5 rounded-full">

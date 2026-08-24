@@ -151,7 +151,7 @@ export const LiveChatWidget: React.FC<LiveChatWidgetProps> = ({
             <MessageCircle className="w-5 h-5 group-hover:scale-110 transition-transform" />
             <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-400 rounded-full ring-2 ring-blue-600 animate-pulse" />
           </div>
-          <span className="text-xs font-bold tracking-wide">Chat Admin</span>
+          <span className="text-xs font-bold tracking-wide">Live Support</span>
           {unreadCount > 0 && (
             <span className="bg-red-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded-full ring-2 ring-white">
               {unreadCount}
@@ -167,14 +167,14 @@ export const LiveChatWidget: React.FC<LiveChatWidgetProps> = ({
           <div className="p-3.5 bg-gradient-to-r from-blue-700 via-indigo-700 to-slate-900 border-b border-white/10 text-white flex items-center justify-between shrink-0">
             <div className="flex items-center space-x-2.5">
               <div className="relative w-8 h-8 rounded-full bg-white/15 flex items-center justify-center border border-white/20">
-                <ShieldCheck className="w-4 h-4 text-emerald-300" />
+                <MessageSquare className="w-4 h-4 text-emerald-300" />
                 <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-400 rounded-full ring-2 ring-slate-900" />
               </div>
               <div>
                 <div className="flex items-center space-x-1.5">
-                  <h3 className="text-xs font-bold leading-tight">Admin Support</h3>
+                  <h3 className="text-xs font-bold leading-tight">Live Support</h3>
                   <span className="bg-emerald-500/30 border border-emerald-400/40 text-emerald-200 text-[9px] px-1.5 py-0.2 rounded font-medium">
-                    Live
+                    Online
                   </span>
                 </div>
                 <p className="text-[11px] text-blue-100/80 font-mono truncate max-w-[190px]">
@@ -185,10 +185,12 @@ export const LiveChatWidget: React.FC<LiveChatWidgetProps> = ({
 
             <div className="flex items-center space-x-1">
               <a
-                href={`mailto:${adminEmail}?subject=DVRA%20Suite%20Inquiry`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-1.5 text-blue-200 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                href={`mailto:${adminEmail}?subject=${encodeURIComponent(
+                  'Request: DVRA Software License Activation'
+                )}&body=${encodeURIComponent(
+                  'Hello DVRA Team,\n\nI would like to request an activation license for the DVRA Software Suite:\n\n• Name / Organization: \n• Hardware / Device Identifier: \n• Number of Licenses Needed: \n• Additional Notes: \n\nPlease provide the activation key and instructions to activate the software.\n\nThank you,\n'
+                )}`}
+                className="p-1.5 text-blue-200 hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
                 title={`Send direct email to ${adminEmail}`}
               >
                 <Mail className="w-4 h-4" />
@@ -212,13 +214,17 @@ export const LiveChatWidget: React.FC<LiveChatWidgetProps> = ({
 
           {/* Quick Contact Bar */}
           <div className="bg-slate-950/70 border-b border-slate-800 px-3 py-1.5 flex items-center justify-between text-[10px] text-slate-400">
-            <span className="flex items-center space-x-1">
-              <Sparkles className="w-3 h-3 text-amber-400" />
-              <span>Direct Admin Channel: <strong className="text-slate-200 font-mono">{adminEmail}</strong></span>
+            <span className="flex items-center space-x-1 truncate mr-2">
+              <Sparkles className="w-3 h-3 text-amber-400 shrink-0" />
+              <span className="truncate">Direct Admin Channel: <strong className="text-slate-200 font-mono">{adminEmail}</strong></span>
             </span>
             <a
-              href={`mailto:${adminEmail}`}
-              className="text-blue-400 hover:underline flex items-center space-x-0.5 font-medium"
+              href={`mailto:${adminEmail}?subject=${encodeURIComponent(
+                'Request: DVRA Software License Activation'
+              )}&body=${encodeURIComponent(
+                'Hello DVRA Team,\n\nI would like to request an activation license for the DVRA Software Suite:\n\n• Name / Organization: \n• Hardware / Device Identifier: \n• Number of Licenses Needed: \n• Additional Notes: \n\nPlease provide the activation key and instructions to activate the software.\n\nThank you,\n'
+              )}`}
+              className="text-blue-400 hover:underline flex items-center space-x-0.5 font-medium shrink-0 cursor-pointer"
             >
               <span>Email</span>
               <ExternalLink className="w-2.5 h-2.5" />
