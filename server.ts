@@ -148,13 +148,27 @@ function initDefaultFirebase() {
 // Auto-initialize from environment if provided
 initDefaultFirebase();
 
-// Admin Authentication & Rate Limiting (5 failed attempts maximum)
+// Admin Authentication & Device/IP Ban System (Permanent Ban after 5 failed attempts)
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || process.env.admin_password || '2005';
 let adminSessionSecret = crypto.randomBytes(32).toString('hex');
-let failedLoginAttempts = 0;
-let lockoutUntil = 0;
 const MAX_ATTEMPTS = 5;
-const LOCKOUT_MS = 5 * 60 * 1000; // 5 minutes lockout
+
+// Track device / IP attempts and permanent bans
+interface DeviceAttemptRecord {
+  failedAttempts: number;
+  isBanned: boolean;
+  bannedAt?: string;
+  lastAttemptAt: string;
+}
+
+const deviceAttempts = new Map<string, DeviceAttemptRecord>();
+
+function getClientIdentifier(req: express.Request, deviceIdFromClient?: string): string {
+  const forwarded = req.headers['x-forwarded-for'];
+  const ip = typeof forwarded === 'string' ? forwarded.split(',')[0].trim() : req.socket.remoteAddress || 'unknown-ip';
+  const deviceId = (deviceIdFromClient && typeof deviceIdFromClient === 'string' && deviceIdFromClient.trim()) ? deviceIdFromClient.trim() : 'no-dev-id';
+  return `${ip}::${deviceId}`;
+}
 
 function verifyAdmin(req: express.Request): boolean {
   const authHeader = req.headers['authorization'];
@@ -265,50 +279,90 @@ async function startServer() {
   });
 
   // ==========================================
-  // ADMIN AUTHENTICATION ENDPOINTS
+  // ADMIN AUTHENTICATION & DEVICE BAN ENDPOINTS
   // ==========================================
-  app.post('/api/admin/login', (req, res) => {
-    const now = Date.now();
-    if (now < lockoutUntil) {
-      const waitSeconds = Math.ceil((lockoutUntil - now) / 1000);
-      return res.status(429).json({
-        success: false,
-        lockedOut: true,
-        error: `Too many failed login attempts. Locked out for ${waitSeconds} more seconds.`,
+  // Check if current device/IP is banned
+  app.get('/api/admin/check-ban', (req, res) => {
+    const deviceId = req.query.deviceId as string;
+    const clientKey = getClientIdentifier(req, deviceId);
+    const record = deviceAttempts.get(clientKey);
+
+    if (record && record.isBanned) {
+      return res.json({
+        isBanned: true,
+        bannedAt: record.bannedAt,
+        message: 'Your device has been permanently banned from the Admin Access portal due to 5 consecutive failed PIN attempts.',
       });
     }
 
-    const { password } = req.body;
+    const attemptsUsed = record ? record.failedAttempts : 0;
+    return res.json({
+      isBanned: false,
+      attemptsRemaining: Math.max(0, MAX_ATTEMPTS - attemptsUsed),
+      attemptsUsed,
+    });
+  });
+
+  app.post('/api/admin/login', (req, res) => {
+    const { password, deviceId } = req.body;
+    const clientKey = getClientIdentifier(req, deviceId);
+    let record = deviceAttempts.get(clientKey);
+
+    if (!record) {
+      record = {
+        failedAttempts: 0,
+        isBanned: false,
+        lastAttemptAt: new Date().toISOString(),
+      };
+      deviceAttempts.set(clientKey, record);
+    }
+
+    // Check if device is banned
+    if (record.isBanned) {
+      return res.status(403).json({
+        success: false,
+        isBanned: true,
+        banned: true,
+        error: 'ACCESS PERMANENTLY DENIED: This device has been banned from the Admin Access Portal after 5 incorrect password attempts.',
+      });
+    }
+
     if (!password || typeof password !== 'string') {
       return res.status(400).json({ success: false, error: 'Password is required' });
     }
 
     if (password.trim() === ADMIN_PASSWORD) {
-      failedLoginAttempts = 0;
-      lockoutUntil = 0;
+      // Reset failed attempts on correct password
+      record.failedAttempts = 0;
+      record.lastAttemptAt = new Date().toISOString();
       return res.json({
         success: true,
         token: adminSessionSecret,
         message: 'Admin access granted.',
       });
     } else {
-      failedLoginAttempts += 1;
-      const attemptsLeft = Math.max(0, MAX_ATTEMPTS - failedLoginAttempts);
+      record.failedAttempts += 1;
+      record.lastAttemptAt = new Date().toISOString();
+      const attemptsLeft = Math.max(0, MAX_ATTEMPTS - record.failedAttempts);
 
-      if (failedLoginAttempts >= MAX_ATTEMPTS) {
-        lockoutUntil = Date.now() + LOCKOUT_MS;
-        failedLoginAttempts = 0; // reset for after lockout
-        return res.status(429).json({
+      if (record.failedAttempts >= MAX_ATTEMPTS) {
+        record.isBanned = true;
+        record.bannedAt = new Date().toISOString();
+
+        return res.status(403).json({
           success: false,
-          lockedOut: true,
-          error: 'Maximum failed trials reached (5/5). Admin access locked for 5 minutes.',
+          isBanned: true,
+          banned: true,
+          attemptsLeft: 0,
+          error: 'DEVICE BANNED: You have failed 5 password attempts. This device and IP have been permanently banned from the Admin Portal.',
         });
       }
 
       return res.status(401).json({
         success: false,
+        isBanned: false,
         attemptsLeft,
-        error: `Invalid password. ${attemptsLeft} attempts remaining.`,
+        error: `Incorrect Admin PIN. Warning: ${attemptsLeft} of 5 attempts remaining before permanent device ban.`,
       });
     }
   });

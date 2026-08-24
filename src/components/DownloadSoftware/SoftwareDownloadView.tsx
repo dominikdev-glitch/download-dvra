@@ -467,22 +467,19 @@ export function SoftwareDownloadView({ onAdminUnlockRequest, isAdminUnlocked }: 
         </div>
       </div>
 
-      {/* 6. Footer with Clear, Unobstructed Admin Lock */}
-      <div className="pt-6 pb-20 sm:pb-8 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+      {/* 6. Footer with Discreet Padlock Icon */}
+      <div className="pt-6 pb-20 sm:pb-8 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
         <span>
-          © 2026 DVRA Software Suite. All rights reserved. Support: <strong className="text-slate-700 font-mono">celiwamama@gmail.com</strong>
+          © 2026 DVRA Software Suite. All rights reserved. Support: <strong className="text-slate-600 font-mono">celiwamama@gmail.com</strong>
         </span>
-        <div className="flex items-center space-x-2">
-          <button
-            id="btn-footer-admin-login"
-            onClick={onAdminUnlockRequest}
-            title={isAdminUnlocked ? 'Admin Mode (Active)' : 'Admin Control Center Login'}
-            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 transition-colors cursor-pointer text-xs font-semibold border border-slate-200"
-          >
-            <Lock className="w-3.5 h-3.5 text-slate-700" />
-            <span>Admin PIN</span>
-          </button>
-        </div>
+        <button
+          id="btn-footer-admin-login"
+          onClick={onAdminUnlockRequest}
+          title={isAdminUnlocked ? 'Admin Mode (Active)' : 'Security'}
+          className="p-1.5 rounded-md hover:bg-slate-100 hover:text-slate-600 text-slate-300 transition-colors cursor-pointer"
+        >
+          <Lock className="w-3.5 h-3.5" />
+        </button>
       </div>
     </div>
   );
